@@ -1,5 +1,3 @@
-"use client";
-
 import type { IconButtonProps, SpanProps } from "@chakra-ui/react";
 import { ClientOnly, IconButton, Skeleton, Span } from "@chakra-ui/react";
 import { ThemeProvider, useTheme } from "next-themes";
@@ -23,6 +21,7 @@ export interface UseColorModeReturn {
   toggleColorMode: () => void;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useColorMode(): UseColorModeReturn {
   const { resolvedTheme, setTheme } = useTheme();
   const toggleColorMode = () => {
