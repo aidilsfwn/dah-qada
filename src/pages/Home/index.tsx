@@ -14,7 +14,8 @@ const Home = () => {
     if (storedNickname) setNickname(storedNickname);
   }, []);
 
-  if (!nickname) return <NicknameForm />;
+  if (!nickname)
+    return <NicknameForm nickname={nickname} setNickname={setNickname} />;
 
   return (
     <Box
