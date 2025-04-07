@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { useNavigate } from "react-router";
 
-const NicknameForm = () => {
-  const navigate = useNavigate();
+interface NicknameFormProps {
+  nickname: string;
+  setNickname: Dispatch<SetStateAction<string>>;
+}
 
-  const [nickname, setNickname] = useState("");
+const NicknameForm = ({ setNickname }: NicknameFormProps) => {
+  const [tempNickname, setTempNickname] = useState("");
 
   const handleSubmit = () => {
-    localStorage.setItem("nickname", nickname);
-    navigate("/quran");
+    localStorage.setItem("nickname", tempNickname);
+    setNickname(tempNickname);
   };
 
   return (
@@ -29,8 +31,8 @@ const NicknameForm = () => {
       </Typography>
       <TextField
         id="nickname"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
+        value={tempNickname}
+        onChange={(e) => setTempNickname(e.target.value)}
         variant="outlined"
         autoFocus
         slotProps={{
