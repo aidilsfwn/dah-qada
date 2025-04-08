@@ -1,5 +1,5 @@
 export const typography = {
-  fontFamily: '"Amiri", "Scheherazade New", serif',
+  fontFamily: '"Quicksand", "Scheherazade New", serif',
   h1: {
     fontWeight: 500,
   },
