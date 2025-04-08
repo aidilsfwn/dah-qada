@@ -24,7 +24,8 @@ export const AppBar = ({ toggleDrawer }: { toggleDrawer: () => void }) => {
   return (
     <AppBarMUI position="sticky">
       <Toolbar>
-        {/* <IconButton
+        <IconButton
+          disabled
           edge="start"
           color="inherit"
           aria-label="menu"
@@ -32,7 +33,7 @@ export const AppBar = ({ toggleDrawer }: { toggleDrawer: () => void }) => {
           onClick={toggleDrawer}
         >
           <MenuIcon />
-        </IconButton> */}
+        </IconButton>
         <Typography
           variant="h6"
           component="div"

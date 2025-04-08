@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import { Link } from "react-router";
 import moment from "moment";
 import {
@@ -21,6 +21,13 @@ import { db, QadaSalah } from "../../db";
 
 const ViewList = () => {
   const [list, setList] = useState<QadaSalah[]>([]);
+  const [expanded, setExpanded] = useState<string | false>(false);
+
+  const handleChange =
+    (panel: string | false) =>
+    (_event: SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
 
   useEffect(() => {
     fetchList();
@@ -38,73 +45,92 @@ const ViewList = () => {
       </Typography>
 
       <Stack spacing={1.5}>
-        {list.map((item) => (
-          <Accordion
-            key={item.id}
-            disabled={item.status === "done"}
-            sx={{
-              opacity: item.status === "done" ? 0.5 : 1,
-              borderLeft:
-                item.status === "done"
-                  ? "6px solid green"
-                  : "6px solid #1976d2",
-              transition: "opacity 0.3s ease",
-              borderRadius: 1,
-              boxShadow: "none",
-              "&:before": { display: "none" },
-            }}
+        {list.length === 0 ? (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+            sx={{ mt: 2 }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ width: "100%" }}
-              >
-                <Typography variant="subtitle1">
-                  {moment(item.date).format("D MMM YYYY")} – {item.salahTime}
+            Tiada rekod lagi.
+          </Typography>
+        ) : (
+          list.map((item) => (
+            <Accordion
+              expanded={expanded === item.id?.toString()}
+              onChange={handleChange(item.id?.toString() || false)}
+              key={item.id}
+              disabled={item.status === "done"}
+              sx={{
+                opacity: item.status === "done" ? 0.5 : 1,
+                borderLeft:
+                  item.status === "done"
+                    ? "6px solid green"
+                    : "6px solid #1976d2",
+                transition: "opacity 0.3s ease",
+                borderRadius: 1,
+                boxShadow: "none",
+                "&:before": { display: "none" },
+              }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ width: "100%" }}
+                >
+                  <Typography variant="subtitle1">
+                    {moment(item.date).format("D MMM YYYY")} – {item.salahTime}
+                  </Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body2" color="text.secondary" mb={1}>
+                  Alasan: {item.reason ?? "-"}
                 </Typography>
-              </Stack>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                Alasan: {item.reason}
-              </Typography>
-              <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                <Tooltip title="Tanda Selesai">
-                  <span>
-                    <IconButton
-                      color="success"
-                      size="small"
-                      disabled={item.status === "done"}
-                      onClick={async () => {
-                        await db.qadaSalah.update(item.id, { status: "done" });
-                        fetchList();
-                      }}
-                    >
-                      <DoneIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Tooltip title="Padam">
-                  <span>
-                    <IconButton
-                      color="error"
-                      size="small"
-                      disabled={item.status === "done"}
-                      onClick={async () => {
-                        await db.qadaSalah.delete(item.id);
-                        fetchList();
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-        ))}
+                <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                  <Tooltip title="Tanda Selesai">
+                    <span>
+                      <IconButton
+                        color="success"
+                        size="small"
+                        onClick={async () => {
+                          setExpanded(false);
+                          setTimeout(async () => {
+                            await db.qadaSalah.update(item.id, {
+                              status: "done",
+                            });
+                            fetchList();
+                          }, 200);
+                        }}
+                      >
+                        <DoneIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Padam">
+                    <span>
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={async () => {
+                          setExpanded(false);
+                          setTimeout(async () => {
+                            await db.qadaSalah.delete(item.id);
+                            fetchList();
+                          }, 200);
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+          ))
+        )}
       </Stack>
 
       <Box mt={5}>

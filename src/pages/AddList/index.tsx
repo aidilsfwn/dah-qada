@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import moment from "moment";
+import Dexie from "dexie";
 import {
   Button,
   FormControl,
@@ -52,8 +53,11 @@ const AddList = () => {
       setTimeout(() => {
         navigate("/");
       }, 1000);
-    } catch (error: any) {
-      if (error.name === "ConstraintError") {
+    } catch (error: unknown) {
+      if (
+        error instanceof Dexie.DexieError &&
+        error.name === "ConstraintError"
+      ) {
         showNotification("This prayer record already exists", "error");
       } else {
         showNotification("Failed to save. Please try again.", "error");
