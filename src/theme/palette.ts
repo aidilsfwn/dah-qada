@@ -1,26 +1,26 @@
 export const palette = {
   primary: {
-    main: "#006064", // Deep Teal
-    light: "#428e92",
-    dark: "#00363a",
+    main: "#7F5AF0", // Soft Purple
+    light: "#A78BFA",
+    dark: "#5A3EBA",
     contrastText: "#ffffff",
   },
   secondary: {
-    main: "#D4AF37", // Amber Gold
-    light: "#dfc061",
-    dark: "#aa8c2c",
+    main: "#FFB86B", // Warm Peach
+    light: "#FFD4A3",
+    dark: "#CC884F",
     contrastText: "#000000",
   },
   error: {
-    main: "#C0392B", // Pomegranate
+    main: "#EF4444", // Bright Red
   },
   background: {
-    default: "#F5F5DC", // Warm Ivory
-    paper: "#ffffff",
+    default: "#FAF9F6", // Almost White
+    paper: "#FFFFFF",
   },
   text: {
-    primary: "#3E2723", // Rich Brown
-    secondary: "#1A237E", // Deep Indigo
+    primary: "#1F2937", // Dark Slate
+    secondary: "#6B7280", // Muted Gray
   },
-  divider: "#B3E0F2", // Sky Blue
+  divider: "#E5E7EB", // Light Gray
 };

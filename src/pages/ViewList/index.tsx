@@ -1,7 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import moment from "moment";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
+
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import DoneIcon from "@mui/icons-material/CheckCircleOutline";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 
 import { db, QadaSalah } from "../../db";
 
@@ -18,83 +32,96 @@ const ViewList = () => {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-      }}
-    >
-      <Typography variant="h4" sx={{ mb: 4 }}>
-        papar senarai
+    <Box sx={{ px: 2, py: 4, maxWidth: 600, mx: "auto" }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
+        Papar Senarai
       </Typography>
-      <Stack gap={1} sx={{ px: 2 }}>
-        <>
-          {list.map((item) => {
-            return (
+
+      <Stack spacing={1.5}>
+        {list.map((item) => (
+          <Accordion
+            key={item.id}
+            disabled={item.status === "done"}
+            sx={{
+              opacity: item.status === "done" ? 0.5 : 1,
+              borderLeft:
+                item.status === "done"
+                  ? "6px solid green"
+                  : "6px solid #1976d2",
+              transition: "opacity 0.3s ease",
+              borderRadius: 1,
+              boxShadow: "none",
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Stack
-                key={item.id}
-                direction={"row"}
-                sx={{ justifyContent: "space-between", alignItems: "center" }}
-                gap={3}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ width: "100%" }}
               >
-                <Typography
-                  noWrap
-                  sx={{ opacity: item.status === "done" ? 0.5 : 1 }}
-                >
-                  {moment(item.date).format("D/M/YYYY")} - {item.salahTime} -{" "}
-                  {item.reason}
+                <Typography variant="subtitle1">
+                  {moment(item.date).format("D MMM YYYY")} – {item.salahTime}
                 </Typography>
-                <Stack direction={"row"} gap={1}>
-                  <Button
-                    disabled={item.status === "done"}
-                    variant="contained"
-                    sx={{ textTransform: "none" }}
-                    size="small"
-                    onClick={async () => {
-                      await db.qadaSalah.update(item.id, {
-                        status: "done",
-                      });
-                      fetchList();
-                    }}
-                  >
-                    tanda selesai
-                  </Button>
-                  <Button
-                    disabled={item.status === "done"}
-                    variant="contained"
-                    sx={{ textTransform: "none", bgcolor: "red" }}
-                    size="small"
-                    onClick={async () => {
-                      await db.qadaSalah.delete(item.id);
-                      fetchList();
-                    }}
-                  >
-                    padam
-                  </Button>
-                </Stack>
               </Stack>
-            );
-          })}
-        </>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant="body2" color="text.secondary" mb={1}>
+                Alasan: {item.reason}
+              </Typography>
+              <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                <Tooltip title="Tanda Selesai">
+                  <span>
+                    <IconButton
+                      color="success"
+                      size="small"
+                      disabled={item.status === "done"}
+                      onClick={async () => {
+                        await db.qadaSalah.update(item.id, { status: "done" });
+                        fetchList();
+                      }}
+                    >
+                      <DoneIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Tooltip title="Padam">
+                  <span>
+                    <IconButton
+                      color="error"
+                      size="small"
+                      disabled={item.status === "done"}
+                      onClick={async () => {
+                        await db.qadaSalah.delete(item.id);
+                        fetchList();
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+        ))}
       </Stack>
-      <Link
-        to={"/"}
-        style={{
-          WebkitTapHighlightColor: "transparent",
-          WebkitTouchCallout: "none",
-          userSelect: "none",
-        }}
-      >
-        <Button
-          variant="outlined"
-          sx={{ textTransform: "none", mt: 4, mb: 2, mx: 2 }}
+
+      <Box mt={5}>
+        <Link
+          to={"/"}
+          style={{
+            textDecoration: "none",
+            WebkitTapHighlightColor: "transparent",
+            WebkitTouchCallout: "none",
+            userSelect: "none",
+          }}
         >
-          kembali
-        </Button>
-      </Link>
+          <Button fullWidth variant="outlined" sx={{ textTransform: "none" }}>
+            Kembali
+          </Button>
+        </Link>
+      </Box>
     </Box>
   );
 };
