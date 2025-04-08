@@ -1,21 +1,24 @@
-import { Fragment, JSX, useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { JSX, useEffect, useState } from "react";
 import {
   Box,
   Card,
   FormControl,
   Grid,
   InputLabel,
+  ListSubheader,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Skeleton,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
-
 import { WAKTU_SOLAT_MENGIKUT_ZON_LIST } from "../../constants";
+import { useNotification } from "../../contexts";
 
 interface FormattedWaktuSolat {
   fajr: string;
@@ -25,153 +28,222 @@ interface FormattedWaktuSolat {
   maghrib: string;
   isha: string;
 }
+
 interface ZoneInfo {
   jakimCode: string;
   daerah: string;
   negeri: string;
 }
 
+const MobileContent = ({
+  data,
+  isLoading,
+}: {
+  data: FormattedWaktuSolat | null;
+  isLoading: boolean;
+}) => {
+  const labels = ["Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"];
+  const values = [
+    data?.fajr,
+    data?.syuruk,
+    data?.dhuhr,
+    data?.asr,
+    data?.maghrib,
+    data?.isha,
+  ];
+
+  return (
+    <>
+      <Grid size={6}>
+        {labels.map((label, i) => (
+          <Typography key={label} sx={{ mt: i === 0 ? 0 : 1 }}>
+            {label}
+          </Typography>
+        ))}
+      </Grid>
+      <Grid size={6}>
+        {values.map((value, i) => {
+          if (isLoading)
+            return (
+              <Skeleton
+                key={`skeleton-${i}`}
+                sx={{
+                  height: "auto",
+                  width: "40%",
+                  mt: i === 0 ? 0 : 1,
+                  justifySelf: "end",
+                }}
+              />
+            );
+          return (
+            <Typography
+              key={`time-${i}`}
+              sx={{ mt: i === 0 ? 0 : 1, textAlign: "end" }}
+            >
+              {value}
+            </Typography>
+          );
+        })}
+      </Grid>
+    </>
+  );
+};
+
+const DesktopContent = ({
+  data,
+  isLoading,
+}: {
+  data: FormattedWaktuSolat | null;
+  isLoading: boolean;
+}) => {
+  const content = [
+    { value: data?.fajr, label: "Subuh" },
+    { value: data?.syuruk, label: "Syuruk" },
+    { value: data?.dhuhr, label: "Zohor" },
+    { value: data?.asr, label: "Asar" },
+    { value: data?.maghrib, label: "Maghrib" },
+    { value: data?.isha, label: "Isyak" },
+  ];
+
+  return (
+    <>
+      {content.map(({ value, label }, i) => (
+        <Grid size={2} key={i}>
+          {isLoading ? (
+            <Skeleton
+              key={`skeleton-${i}`}
+              sx={{
+                height: "auto",
+                width: "40%",
+                justifySelf: "center",
+              }}
+            />
+          ) : (
+            <Typography align="center">{value}</Typography>
+          )}
+          <Typography align="center">{label}</Typography>
+        </Grid>
+      ))}
+    </>
+  );
+};
+
 export const WaktuSolatWidget = () => {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const { showNotification } = useNotification();
 
-  // Initialize state but don't set value until we know options are loaded
   const [zon, setZon] = useState<string>("");
   const [formattedWaktuSolat, setFormattedWaktuSolat] =
     useState<FormattedWaktuSolat | null>(null);
-  const [groupedZones, setGroupedZones] = useState<any>({});
+  const [groupedZones, setGroupedZones] = useState<Record<string, ZoneInfo[]>>(
+    {}
+  );
   const [isZonesLoaded, setIsZonesLoaded] = useState(false);
+  const [isWaktuSolatLoaded, setIsWaktuSolatLoaded] = useState(false);
 
   const today = moment();
 
-  const handleChange = (event: SelectChangeEvent) => {
-    const newZon = event.target.value as string;
-    setZon(newZon);
-    localStorage.setItem("zonWaktuSolat", newZon);
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    const selectedZon = event.target.value;
+    setZon(selectedZon);
+    localStorage.setItem("zonWaktuSolat", selectedZon);
   };
 
   const fetchWaktuSolat = async () => {
     if (!zon) return;
 
+    setIsWaktuSolatLoaded(true);
+
     try {
-      const response = await axios.request({
-        method: "GET",
-        url:
-          "https://www.e-solat.gov.my/index.php?r=esolatApi/TakwimSolat&period=today&zone=" +
-          zon,
-      });
+      const { data } = await axios.get(
+        `https://www.e-solat.gov.my/index.php?r=esolatApi/TakwimSolat&period=today&zone=${zon}`
+      );
 
-      const data = response.data;
-
-      if (
-        data.status !== "OK!" ||
-        !data.prayerTime ||
-        data.prayerTime.length === 0
-      ) {
-        console.log("Could not fetch today's prayer times");
+      if (data.status !== "OK!" || !data.prayerTime?.length) {
+        showNotification("Could not fetch today's prayer times", "error");
         return;
       }
 
       const todayPrayers = data.prayerTime[0];
 
-      const formattedPrayers = {
+      setFormattedWaktuSolat({
         fajr: moment(todayPrayers.fajr, "HH:mm:ss").format("hh:mm a"),
         syuruk: moment(todayPrayers.syuruk, "HH:mm:ss").format("hh:mm a"),
         dhuhr: moment(todayPrayers.dhuhr, "HH:mm:ss").format("hh:mm a"),
         asr: moment(todayPrayers.asr, "HH:mm:ss").format("hh:mm a"),
         maghrib: moment(todayPrayers.maghrib, "HH:mm:ss").format("hh:mm a"),
         isha: moment(todayPrayers.isha, "HH:mm:ss").format("hh:mm a"),
-      };
-      setFormattedWaktuSolat(formattedPrayers);
+      });
     } catch (error) {
-      console.error("Error fetching prayer times:", error);
+      showNotification("Error fetching prayer times:" + error, "error");
     }
+
+    setIsWaktuSolatLoaded(false);
   };
 
   const groupZonesByNegeri = () => {
     const grouped: Record<string, ZoneInfo[]> = {};
-    WAKTU_SOLAT_MENGIKUT_ZON_LIST.forEach((zone: ZoneInfo) => {
-      const negeri = zone.negeri;
-      if (!grouped[negeri]) {
-        grouped[negeri] = [];
-      }
-      grouped[negeri].push(zone);
-    });
+
+    for (const zone of WAKTU_SOLAT_MENGIKUT_ZON_LIST) {
+      if (!grouped[zone.negeri]) grouped[zone.negeri] = [];
+      grouped[zone.negeri].push(zone);
+    }
+
     setGroupedZones(grouped);
     setIsZonesLoaded(true);
   };
 
-  // Initialize zones on component mount
   useEffect(() => {
     groupZonesByNegeri();
   }, []);
 
-  // Set the default zone after zones are loaded
   useEffect(() => {
     if (isZonesLoaded) {
       const savedZon = localStorage.getItem("zonWaktuSolat");
 
-      // Check if the saved zone exists in our data
-      let zonExists = false;
-      if (savedZon) {
-        // Type-safe iteration
-        Object.values(groupedZones).forEach((zoneList: ZoneInfo[]) => {
-          zoneList.forEach((zone: ZoneInfo) => {
-            if (zone.jakimCode === savedZon) {
-              zonExists = true;
-            }
-          });
-        });
-      }
+      const exists = savedZon
+        ? Object.values(groupedZones).some((zones) =>
+            zones.some((z) => z.jakimCode === savedZon)
+          )
+        : false;
 
-      // Set to saved zone if it exists, otherwise use first available zone
-      if (savedZon && zonExists) {
-        setZon(savedZon);
-      } else {
-        // Default to first available zone
-        const firstNegeri = Object.keys(groupedZones)[0];
-        if (firstNegeri && groupedZones[firstNegeri].length > 0) {
-          const defaultZon = groupedZones[firstNegeri][0].jakimCode;
-          setZon(defaultZon);
-          localStorage.setItem("zonWaktuSolat", defaultZon);
-        }
-      }
+      const defaultZon = exists
+        ? savedZon!
+        : Object.values(groupedZones)[0]?.[0]?.jakimCode || "";
+
+      setZon(defaultZon);
+      localStorage.setItem("zonWaktuSolat", defaultZon);
     }
   }, [isZonesLoaded, groupedZones]);
 
-  // Fetch prayer times whenever the zone changes
   useEffect(() => {
-    if (zon) {
-      fetchWaktuSolat();
-    }
+    if (zon) fetchWaktuSolat();
   }, [zon]);
 
-  // Prepare menu items as an array to avoid Fragment issues
   const menuItems: JSX.Element[] = [];
 
   for (const [negeri, zones] of Object.entries(groupedZones)) {
-    // Add negeri header
     menuItems.push(
-      <Typography
+      <ListSubheader
+        sx={{ color: "text.primary", fontWeight: "bold" }}
         key={`negeri-${negeri}`}
-        sx={{ fontWeight: "bold", paddingLeft: 2, paddingTop: 1 }}
       >
         {negeri}
-      </Typography>
+      </ListSubheader>
     );
 
-    // Add zone items for this negeri
-    for (const zone of zones) {
+    zones.forEach((zone) => {
       menuItems.push(
         <MenuItem key={zone.jakimCode} value={zone.jakimCode}>
           {zone.daerah}
         </MenuItem>
       );
-    }
+    });
   }
 
   return (
-    <Fragment>
+    <>
       <Card sx={{ mb: 4, borderRadius: 2, boxShadow: 3 }}>
         <Box sx={{ bgcolor: "primary.light", py: 2 }}>
           <Typography
@@ -184,90 +256,34 @@ export const WaktuSolatWidget = () => {
             Waktu solat hari ini ({today.format("D MMMM YYYY")})
           </Typography>
         </Box>
-        <Box sx={{ bgcolor: "background.primary", py: 3, px: 4 }}>
+        <Box sx={{ py: 3, px: 4 }}>
           <Grid container>
             {isMdUp ? (
-              <DesktopContent data={formattedWaktuSolat} />
+              <DesktopContent
+                data={formattedWaktuSolat}
+                isLoading={isWaktuSolatLoaded}
+              />
             ) : (
-              <MobileContent data={formattedWaktuSolat} />
+              <MobileContent
+                data={formattedWaktuSolat}
+                isLoading={isWaktuSolatLoaded}
+              />
             )}
           </Grid>
         </Box>
       </Card>
-      <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">Zon</InputLabel>
+      <FormControl fullWidth size="small">
+        <InputLabel id="zon-select-label">Zon</InputLabel>
         <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
+          labelId="zon-select-label"
+          id="zon-select"
           value={zon}
           label="Zon"
           onChange={handleChange}
-          size="small"
         >
           {menuItems}
         </Select>
       </FormControl>
-    </Fragment>
-  );
-};
-
-const MobileContent = ({ data }: { data: FormattedWaktuSolat | null }) => {
-  return (
-    <Fragment>
-      <Grid size={6}>
-        {["Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"].map(
-          (item, index) => {
-            return (
-              <Typography key={item} sx={{ mt: index === 0 ? 0 : 1 }}>
-                {item}
-              </Typography>
-            );
-          }
-        )}
-      </Grid>
-      <Grid size={6}>
-        {[
-          data?.fajr,
-          data?.syuruk,
-          data?.dhuhr,
-          data?.asr,
-          data?.maghrib,
-          data?.isha,
-        ].map((item, index) => {
-          return (
-            <Typography
-              key={`time-${index}`}
-              sx={{ mt: index === 0 ? 0 : 1, textAlign: "end" }}
-            >
-              {item}
-            </Typography>
-          );
-        })}
-      </Grid>
-    </Fragment>
-  );
-};
-
-const DesktopContent = ({ data }: { data: FormattedWaktuSolat | null }) => {
-  const content = [
-    { value: data?.fajr, label: "Subuh" },
-    { value: data?.syuruk, label: "Syuruk" },
-    { value: data?.dhuhr, label: "Zohor" },
-    { value: data?.asr, label: "Asar" },
-    { value: data?.maghrib, label: "Maghrib" },
-    { value: data?.isha, label: "Isyak" },
-  ];
-
-  return (
-    <Fragment>
-      {content.map((item, index) => {
-        return (
-          <Grid size={2} key={`desktop-${index}`}>
-            <Typography align="center">{item.value}</Typography>
-            <Typography align="center">{item.label}</Typography>
-          </Grid>
-        );
-      })}
-    </Fragment>
+    </>
   );
 };
