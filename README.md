@@ -1,54 +1,77 @@
-# React + TypeScript + Vite
+# Dah Qada?
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple Islamic prayer tracker application to help Muslims manage their missed prayers (qada).
 
-Currently, two official plugins are available:
+## 🌙 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Current Features
 
-## Expanding the ESLint configuration
+- **Prayer Times**: Accurate prayer times pulled from JAKIM (Malaysia)
+- **Qada Tracker**: Add missed prayers and mark them as completed
+- **Privacy-Focused**: All data stored locally using IndexedDB for complete privacy
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Coming Soon
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **Ramadan Fasting Tracker**: Track missed fasting days
+- **Backup & Restore**: Export/import data with Dropbox integration
+- **Islamic Reminders**: Display relevant Quran verses and hadith
+- **Profile Customization**: Update your nickname and preferences
+- **Analytics & Visualization**: Visual reports of your qada completion progress
+
+## 🛠️ Technologies
+
+- **React** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Material UI** - Component library
+- **React Router** - Navigation
+- **React Query** - Data fetching
+- **Axios** - API requests
+- **Dexie.js** - IndexedDB wrapper for offline storage
+- **Moment.js** - Date handling
+
+## 📋 Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/aidilsfwn/dah-qada.git
+cd dah-qada
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+yarn install
 ```
+
+3. Start the development server:
+
+```bash
+yarn dev
+```
+
+4. Open your browser and visit `http://localhost:5173`
+
+## 📱 Usage
+
+### Tracking Missed Prayers
+
+1. View current prayer times based on JAKIM data
+2. Add any missed prayers to your qada list
+3. Mark prayers as completed when you've performed them
+4. Keep track of your progress over time
+
+### Data Privacy
+
+- All your data is stored locally on your device
+- No data is sent to any server
+- Complete privacy for your personal worship tracking
+
+## 👤 Developer
+
+Aidil Safwan - [GitHub](https://github.com/aidilsfwn)
+
+## 📝 License
+
+MIT License
